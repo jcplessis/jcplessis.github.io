@@ -6,6 +6,8 @@ title: Essentialism
 
 J’ai commencé à lire (et presque fini) le livre [Essentialism de Greg McKeown](https://gregmckeown.com/book/).
 
+![Livre Essentialism]({{ site.baseurl }}/images/essentialism.jpg "Essentialism")
+
 Le sujet est particulièrement intéressant et le livre en lui-même est très agréable. Dans ce format très sympathique qui alterne des histoires, des diagrammes, , des informations et des récapitulatifs, on retrouve l’essentiel de l’essentialisme.
 
 Dans notre monde actuel, on a envie de dire oui à tout, de tout faire, de suivre toutes les informations, de connaitre toutes les choses qui arrivent à nos amis, de regarder toutes les vidéos de nos YouTubers préférés, d’accepter tous les projets au travail, tout les meetings. Et dans cette abondance, si on ne fait aucun choix, on se retrouve vite débordé. On ne mène plus sa vie, la vie commence à nous mener là où elle veux.
