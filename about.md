@@ -1,7 +1,7 @@
 ---
 layout: page
-title: About
+title: A Propos
 permalink: /about/
 ---
 
-To find me foloow the links at the bottom of this page :)
+Pour me retrouvez, suivez les liens ci-dessous :)
