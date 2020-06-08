@@ -3,10 +3,9 @@ layout: post
 title: Tiny Habits
 ---
 
-J'ai commencé récemment le livre _"Tiny Habits"_ de BJ FOGG. J'avais juste terminé _"The Coaching Habit"_ et en fouillant dans les livres recommandés je suis tombé sur _Tiny Habits_. En parcourant un peu internet je suis arrivé sur leur site https://www.tinyhabits.com/ et je me suis incrit à leur [programme gratuit en 5 jours](https://www.tinyhabits.com/join).
+J'ai commencé récemment le livre _"Tiny Habits"_ de BJ FOGG. J'avais juste terminé _"The Coaching Habit"_ et en fouillant dans les livres recommandés je suis tombé sur _Tiny Habits_. En parcourant un peu internet je suis arrivé sur leur site [https://www.tinyhabits.com/]() et je me suis incrit à leur [programme gratuit en 5 jours](https://www.tinyhabits.com/join).
 
 ![Livre Tiny Habits]({{ site.baseurl }}/images/tinyhabits.jpg "Tiny Habits")
-
 
 Et me voilà, 5 jours plus tard avec 3 nouvelles habitudes plutôt bien ancrées dans mon quotidien :  
 
