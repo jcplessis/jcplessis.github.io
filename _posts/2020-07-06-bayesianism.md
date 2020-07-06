@@ -28,7 +28,7 @@ En pratique on utilise la formule de Bayes :
 
 ![Formula]({{ site.baseurl }}/images/billard/formula.png "Bayes Formula")
 
-C'est un peu barbare comme ça mais en pratique ça se comprend assez bien. C'est principalement une manière de retourner une probabilité condistionnelle. Par exemple je sais que lorsqu'il pleut, 95% du temps j'ai mon parapluie. J'aimerais savoir la probabilité qu'il pleuve sachant que j'ai pris mon parapluie. ça n'est pas 95%, il y a certainement des jours où je prend mon parapluie et où il ne pleut pas.
+C'est un peu barbare comme ça mais en pratique ça se comprend assez bien. C'est principalement une manière de retourner une probabilité condistionnelle. Par exemple je sais que lorsqu'il pleut, 95% du temps j'ai mon parapluie. J'aimerais savoir la probabilité qu'il pleuve sachant que j'ai pris mon parapluie. Ça n'est pas 95%, il y a certainement des jours où je prend mon parapluie et où il ne pleut pas.
 
 Pour revenir à notre problème de billard, ce qui nous intéresse c'est de savoir la probabilité que la bille rouge soit à la position _X_ sachant que la bille blanche est à gauche (ou à droite) de la bille rouge. Si on remplace _A_ par _position = X_ et _B_ par _gauche_ dans la formule de Bayes on obtient :
 
@@ -39,7 +39,7 @@ On peut ensuite appliquer cette formule à chaque position _X_. Par exemple dans
  - multiplié par la probabilité d'être en position _X_=20, c'est à dire l'ancienne probabilité qu'on est en train de mettre à jour (au premier tour ce sera donc 1/100 puis on reprendra la dernière valeur obtenu à chaque fois)
  - divisé par la probabilité d'obtenir l'information _gauche_. Cette partie est ignorée dans mon google collab puisque sans autre information cette probabilité est de 1/2 tout comme la probabilité d'obtenir un _droite_. 
 
- Ainsi si on applique cette formule à de nombreux essais on obtiendra une prédiction de la position de la boule rouge de plus en plus fiable :
+ Ainsi si on applique cette formule sur de nombreux essais on obtiendra une prédiction de la position de la boule rouge de plus en plus fiable :
 
 ![2 tests]({{ site.baseurl }}/images/billard/2tests.png "2 tests")
 
