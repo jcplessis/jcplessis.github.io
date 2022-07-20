@@ -52,6 +52,13 @@ span {
     padding: 5px;
 }
 
+.explanation {
+    border: 1px solid grey;
+    margin-bottom: 15px;
+    padding: 5px;
+
+}
+
 </style>
 
 <script src="framework.js" ></script>
@@ -61,6 +68,30 @@ span {
 <script src="engine.js" ></script>
 <script src="functional_tests.js" ></script>
 
+
+<div id="explanation" class="explanation">
+    <b>Explication : </b>
+    Vous êtes un développeur. Votre trvavail consiste à prendre des règles et à écrire un programme qui respecte ces règles.<br/>
+    Vous trouverez les règles ci-dessous et vous pourrez écrire votre programme en remplissant la grille de droite avec les lettres appropriées.<br/><br/>
+    La plupart des règles sont évidentes, deux précisions cependant :
+    <lu>
+        <li><i>Un X à côté d'un Y (4 directions)</i> signifie en haut, bas, droite ou gauche mais pas en diagonales</li>
+        <li><i>Un X à un saut de cheval d'un Y</i> signifie un déplacement de deux cases dans une direction suivi d'un déplacement de une case dans l'autre direction (comme aux échecs). Par exemple : 2 cases vers le haut suivi d'une case vers la droite.</li>
+    </lu>
+</div>
+
+<div id="explanation_manual" class="explanation">
+    <b>Explication : </b>
+    Maintenant vous avez la chance d'avoir des tests... <br/>
+    Malheureusement nous n'avons pas fait l'effort de les automatiser, il va falloir les exécuter à la main.<br/>
+    Pour executer un test, cliquez sur le bouton, la ligne devient verte si le test est passé avec succès, rouge dans le cas contraire.
+</div>
+
+<div id="explanation_auto" class="explanation">
+    <b>Explication : </b>
+    Maintenant vous avez la chance d'avoir des tests et ils se lancent automatiquement a chaque modification du code !
+    La ligne devient verte si le test est passé avec succès, rouge dans le cas contraire.
+</div>
 
 <div>
     <span>
@@ -109,8 +140,20 @@ if(seed == undefined) {
     }
 }
 
+if(step == "NO_TEST"){
+    document.getElementById("explanation_manual").style.display="none";
+    document.getElementById("explanation_auto").style.display="none";
+}
+
 if(step == "AUTO_TEST"){
     document.getElementById("next_step_url").style.display="none";
+    document.getElementById("explanation").style.display="none";
+    document.getElementById("explanation_manual").style.display="none";
+    
+}
+if(step == "MANUAL_TEST"){
+    document.getElementById("explanation").style.display="none";
+    document.getElementById("explanation_auto").style.display="none";
 }
 
 function refreshRules(game){
