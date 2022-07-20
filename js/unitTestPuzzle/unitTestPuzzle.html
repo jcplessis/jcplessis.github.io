@@ -1,0 +1,230 @@
+<html>
+
+<style>
+
+body{
+    background-color: black;
+    color:white;
+}
+
+.ok {
+   color:green;
+   display: none;
+}
+.failed {
+   color:red;
+   display: none;
+}
+
+.green {
+    color:green;
+}
+.red {
+    color:red;
+}
+
+#input{
+    border: 1px solid grey;
+}
+
+input { 
+    text-align: center; 
+}
+
+button {
+    margin-right: 10px;
+}
+
+span {
+    display: table-cell;
+    width: 60%;
+}
+
+#failed_deploy{
+    background-color: #CC0000;
+    border: 2px solid #CC3333;
+    padding: 5px;
+}
+
+#next_step{
+    background-color: #009900;
+    border: 2px solid #006600;
+    padding: 5px;
+}
+
+</style>
+
+<script src="framework.js" ></script>
+<script src="random.js" ></script>
+<script src="input.js" ></script>
+<script src="rules.js" ></script>
+<script src="engine.js" ></script>
+<script src="functional_tests.js" ></script>
+
+
+<div>
+    <span>
+        Voici les règles :
+        <ul id ="rules"></ul>
+        <input id="pushToProd" type=button value="Mettre en PROD !" onclick="pushToPROD()" />
+    </span>
+    <span>
+       Programmez votre réponse :
+        <table id ="input"></table>
+    </span>
+</div>
+
+<div id="next_step" style="display:none">
+    Félicitations ! la mise en PROD s'est bien passée !
+    <input type=button id="next_step_url" value="Etape suivante !" onclick="redirectToNextStep()"/>
+
+</div>
+
+<div id="failed_deploy"  style="display:none">
+    Les utilisateurs sont super fachés ! <br/>
+    Le système ne fonctionne plus... <br/>
+    <span id="failed_rule"></span>
+</div>
+
+
+<script>
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const step = urlParams.get('step')
+if(step == undefined) {
+    window.location.replace("?step=NO_TEST");
+}
+
+var seed = urlParams.get('seed')
+if(seed == undefined) {
+    if(step == "NO_TEST"){
+        seed = 1598764;
+    }else{
+        if (step == "MANUAL_TEST"){
+            seed = 365489;
+        } else {
+            seed = 4896320;
+        }
+    }
+}
+
+if(step == "AUTO_TEST"){
+    document.getElementById("next_step_url").style.display="none";
+}
+
+function refreshRules(game){
+    var ruleList = document.getElementById("rules");
+    while (ruleList.firstChild) {
+        ruleList.removeChild(ruleList.lastChild);
+    }
+    for(const rule of game.get_rules_with_status()){
+        const node = document.createElement("li");
+        const textnode = document.createTextNode(rule[0]);
+        
+        var color = "red";
+        if(rule[1]) color = "green";
+        if (step == "AUTO_TEST"){
+            node.classList.add(color);
+        }
+        
+        
+        if (step == "MANUAL_TEST"){
+            const buttonnode = document.createElement("button")
+            buttonnode.innerHTML = "Manual test";
+            if(rule[1]) {
+                buttonnode.onmousedown = () => node.classList.add("green");
+                buttonnode.onmouseup = () => node.classList.remove("green");
+                buttonnode.onmouseout = () => node.classList.remove("green");
+            }else{
+                buttonnode.onmousedown = () => node.classList.add("red");
+                buttonnode.onmouseup = () => node.classList.remove("red");
+                buttonnode.onmouseout = () => node.classList.remove("red");
+            }
+            node.appendChild(buttonnode);
+        }
+        node.appendChild(textnode);
+        
+        ruleList.appendChild(node);
+    }   
+}
+
+generator = new RulesGenerator(seed);
+rules = [
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule(),
+    generator.generate_rule()
+]
+const input = new Input(5,5);
+const game = new Engine(rules, input);
+
+refreshRules(game);
+
+
+function changeEvent(x, y){
+    return (event) => {
+      input.set_element(x, y, event.target.value);
+      refreshRules(game);
+    }
+}
+
+var inputTable = document.getElementById("input");
+for(var y = 0; y < input.height; y ++){
+    var row = document.createElement("tr");
+    for(var x = 0; x < input.width; x ++){
+        var cell = document.createElement("td");
+        var charInput = document.createElement("input");
+        cell.appendChild(charInput);
+        charInput.maxLength = 1;
+        charInput.size = 1;
+        cell.addEventListener('keyup', changeEvent(x, y) );
+        row.appendChild(cell);
+    }
+    inputTable.appendChild(row);
+}
+
+function pushToPROD(){
+    var failed_deploy = document.getElementById("failed_deploy");
+   
+    failed_deploy.style.display = "none";
+    
+    if (game.is_green()){
+        var next_step = document.getElementById("next_step");
+        next_step.style.display = "block";
+        var pushToProdButton = document.getElementById("pushToProd");
+        pushToProdButton.style.display = "none";
+        
+        
+    }else{
+        failed_deploy.style.display = "block";
+        var failed_rule = document.getElementById("failed_rule");
+        failed_rule.innerHTML = "Il faut vite corriger la règle : " + game.get_rules_with_status().filter(x => x[1]==false)[0][0];
+    }
+}
+
+function redirectToNextStep(){
+    if(step == "NO_TEST"){
+            window.location.replace("?step=MANUAL_TEST");
+    }
+    if(step == "MANUAL_TEST"){
+        window.location.replace("?step=AUTO_TEST");
+    }
+    }
+</script>
+
+
+
+</html>
