@@ -71,7 +71,7 @@ span {
 
 <div id="explanation" class="explanation">
     <b>Explication : </b>
-    Vous êtes un développeur. Votre trvavail consiste à prendre des règles et à écrire un programme qui respecte ces règles.<br/>
+    Vous êtes un développeur. Votre travail consiste à prendre des règles et à écrire un programme qui respecte ces règles.<br/>
     Vous trouverez les règles ci-dessous et vous pourrez écrire votre programme en remplissant la grille de droite avec les lettres appropriées.<br/><br/>
     La plupart des règles sont évidentes, deux précisions cependant :
     <lu>
@@ -178,13 +178,15 @@ function refreshRules(game){
             const buttonnode = document.createElement("button")
             buttonnode.innerHTML = "Manual test";
             if(rule[1]) {
-                buttonnode.onmousedown = () => node.classList.add("green");
-                buttonnode.onmouseup = () => node.classList.remove("green");
-                buttonnode.onmouseout = () => node.classList.remove("green");
+                buttonnode.onclick = () => {
+                    node.classList.add("green");
+                    setTimeout(() => node.classList.remove("green"), 1000);
+                } 
             }else{
-                buttonnode.onmousedown = () => node.classList.add("red");
-                buttonnode.onmouseup = () => node.classList.remove("red");
-                buttonnode.onmouseout = () => node.classList.remove("red");
+                buttonnode.onclick = () => {
+                    node.classList.add("red");
+                    setTimeout(() => node.classList.remove("red"), 1000);
+                } 
             }
             node.appendChild(buttonnode);
         }
