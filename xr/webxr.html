@@ -88,7 +88,7 @@ function init() {
     const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
     const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    cube.position.set(0, 2, -2);
+    cube.position.set(4, 0, -2);
     scene.add(cube);
 
     const loader = new GLTFLoader();
@@ -97,7 +97,8 @@ function init() {
       'model.glb',
       function (gltf) {
         const model = gltf.scene;
-        model.position.set(0, -2, -2);
+        model.position.set(-4, 0, -2);
+        model.scale.set(0.5, 0.5, 0.5);
         scene.add(model);
       },
       undefined,
