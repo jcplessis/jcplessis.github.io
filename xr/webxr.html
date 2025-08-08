@@ -39,6 +39,7 @@
         const debugEl = document.getElementById('debug');
         const log = (msg) => {
             debugEl.innerHTML += `<div>${msg}</div>`;
+            if (debugEl.innerHTML.length > 500) debugEl.innerHTML = debugEl.innerHTML.slice(debugEl.innerHTML.length - 500);
         };
 
         // Debug info
@@ -108,12 +109,9 @@ function handleControllers() {
     inputSources.forEach((input) => {
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
-            // axes[0] & axes[1] = gauche stick (X, Y)
-            // axes[2] & axes[3] = droit stick (X, Y) (selon manette)
-            // Ici on prend les axes 2 et 3 pour déplacement horizontal / avant-arrière
-            // On peut ajuster si besoin.
 
-            // Exemple : déplacer selon stick gauche (axes 0 et 1)
+            log("Axes : " + gp.axes.length);
+            gp.axes.forEach(a => log(" - " + a);
             let x = gp.axes[0] || 0;
             let y = gp.axes[1] || 0;
 
