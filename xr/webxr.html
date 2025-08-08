@@ -50,11 +50,9 @@
                 .catch(err => log(`isSessionSupported error : ${err}`));
         }
 
-        let renderer, scene, camera;
+        let renderer, scene, camera, cameraRig;
         init();
         animate();
-
-let cameraRig;
 
 function init() {
     scene = new THREE.Scene();
