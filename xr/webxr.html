@@ -23,7 +23,7 @@
     <div id="info">
         <div><strong>WebXR — Scène 3D</strong></div>
         <div>Remarque : WebXR exige HTTPS (ou localhost). Si la page ne propose pas ENTER VR, vérifiez l'accès via HTTPS et que votre navigateur prend en charge WebXR.</div>
-        <div id="debug"></div>
+        <div id="debug" style="max-height: 600px; overflow: auto;"></div>
     <script type="importmap">
     {
         "imports": {
@@ -39,7 +39,6 @@
         const debugEl = document.getElementById('debug');
         const log = (msg) => {
             debugEl.innerHTML += `<div>${msg}</div>`;
-            if (debugEl.innerHTML.length > 500) debugEl.innerHTML = debugEl.innerHTML.slice(debugEl.innerHTML.length - 500);
         };
 
         // Debug info
