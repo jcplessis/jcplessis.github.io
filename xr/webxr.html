@@ -107,7 +107,6 @@ function handleControllers() {
 
     log("Got " + inputSources.length + " inputs")
     inputSources.forEach((input) => {
-        log("Got gamepad " + input.gamepad + ", haandedness " + input.handedness)
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
             // axes[0] & axes[1] = gauche stick (X, Y)
@@ -122,6 +121,7 @@ function handleControllers() {
             // Inverser y pour avancer si besoin
             // Déplacer dans le plan XZ selon la direction où regarde la caméra
             if (Math.abs(x) > 0.1 || Math.abs(y) > 0.1) {
+                log("MOVE " + x + "," + y)
                 const direction = new THREE.Vector3();
 
                 // Déplacement latéral (x) = droite / gauche de la caméra
