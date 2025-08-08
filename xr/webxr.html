@@ -108,8 +108,6 @@ function handleControllers() {
     inputSources.forEach((input) => {
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
-
-            gp.axes.forEach(a => log(" - " + a));
             let x = -1*gp.axes[2] || 0;
             let y = gp.axes[3] || 0;
 
