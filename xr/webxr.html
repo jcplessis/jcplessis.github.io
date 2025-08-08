@@ -107,7 +107,6 @@ function handleControllers() {
 
     log("Got " + inputSources.length + " inputs")
     inputSources.forEach((input) => {
-        msg += input)
         log("Got gamepad " + input.gamepad + ", haandedness " + input.handedness)
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
