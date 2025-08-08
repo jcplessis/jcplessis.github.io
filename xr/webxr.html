@@ -96,7 +96,7 @@ function init() {
 }
 
 function render() {
-    handleControllers();
+    if (cameraRig) handleControllers();
     renderer.render(scene, camera);
 }
 
