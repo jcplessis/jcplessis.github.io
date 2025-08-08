@@ -104,8 +104,7 @@ function handleControllers() {
 
     const inputSources = session.inputSources;
     const speed = 0.05;
-
-    log("Got " + inputSources.length + " inputs")
+    
     inputSources.forEach((input) => {
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
