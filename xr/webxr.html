@@ -109,15 +109,13 @@ function handleControllers() {
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
 
-            log("Axes : " + gp.axes.length);
             gp.axes.forEach(a => log(" - " + a));
-            let x = gp.axes[2] || 0;
+            let x = -1*gp.axes[2] || 0;
             let y = gp.axes[3] || 0;
 
             // Inverser y pour avancer si besoin
             // Déplacer dans le plan XZ selon la direction où regarde la caméra
             if (Math.abs(x) > 0.1 || Math.abs(y) > 0.1) {
-                log("MOVE " + x + "," + y)
                 const direction = new THREE.Vector3();
 
                 // Déplacement latéral (x) = droite / gauche de la caméra
