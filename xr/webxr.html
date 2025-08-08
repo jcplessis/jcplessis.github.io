@@ -35,6 +35,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { VRButton } from 'three/addons/webxr/VRButton.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
         const debugEl = document.getElementById('debug');
         const log = (msg) => {
@@ -87,8 +88,23 @@ function init() {
     const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
     const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    cube.position.set(0, 0.5, -2);
+    cube.position.set(0, 2, -2);
     scene.add(cube);
+
+    const loader = new GLTFLoader();
+
+    loader.load(
+      'model.glb',
+      function (gltf) {
+        const model = gltf.scene;
+        model.position.set(0, -2, -2);
+        scene.add(model);
+      },
+      undefined,
+      function (error) {
+        console.error('Erreur chargement modèle GLTF:', error);
+      }
+    );
 
     window.addEventListener('resize', onWindowResize);
 }
