@@ -105,7 +105,10 @@ function handleControllers() {
     const inputSources = session.inputSources;
     const speed = 0.05;
 
+    log("Got " + inputSources.length + " inputs")
     inputSources.forEach((input) => {
+        msg += input)
+        log("Got gamepad " + input.gamepad + ", haandedness " + input.handedness)
         if (input.gamepad && input.handedness) {
             const gp = input.gamepad;
             // axes[0] & axes[1] = gauche stick (X, Y)
