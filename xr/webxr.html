@@ -127,10 +127,6 @@ function init() {
     window.addEventListener('resize', onWindowResize);
 }
 
-function render() {
-    if (cameraRig) handleControllers();
-    renderer.render(scene, camera);
-}
 
 function handleControllers() {
     const session = renderer.xr.getSession();
@@ -174,10 +170,12 @@ function handleControllers() {
         }
 
         function animate() {
-            const delta = clock.getDelta();
-            if (mixer) mixer.update(delta);
-            renderer.render(scene, camera);
-            renderer.setAnimationLoop(render);
+            renderer.setAnimationLoop(() => {
+                const delta = clock.getDelta();
+                if (mixer) mixer.update(delta);
+                if (cameraRig) handleControllers();
+                renderer.render(scene, camera);
+            });
         }
 
        
