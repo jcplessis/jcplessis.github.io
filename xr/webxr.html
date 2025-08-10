@@ -51,7 +51,7 @@
                 .catch(err => log(`isSessionSupported error : ${err}`));
         }
 
-        let renderer, scene, camera, cameraRig;
+        let renderer, scene, camera, cameraRig, mixer, character;
         init();
         animate();
 
@@ -110,10 +110,12 @@ function init() {
      loader.load(
       'test_animation.glb',
       function (gltf) {
-        const model = gltf.scene;
-        model.position.set(0, 0, -2);
-        model.scale.set(0.5, 0.5, 0.5);
-        scene.add(model);
+        character = gltf.scene;
+        scene.add(character);
+    
+        mixer = new THREE.AnimationMixer(character);
+        const action = mixer.clipAction(gltf.animations[0]);
+        action.play();
       },
       undefined,
       function (error) {
@@ -171,7 +173,10 @@ function handleControllers() {
         }
 
         function animate() {
-            renderer.setAnimationLoop(render);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
+            renderer.render(scene, camera);
+            //renderer.setAnimationLoop(render);
         }
 
        
