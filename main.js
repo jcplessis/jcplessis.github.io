@@ -68,6 +68,28 @@ document.getElementById("connectBtn").onclick = connectMIDI;
 document.getElementById("demoBtn").onclick = startDemo;
 document.getElementById("resetBtn").onclick = resetTimeline;
 
+document.querySelectorAll('.note-btn').forEach(btn => {
+  btn.onclick = (e) => {
+    const input = document.getElementById('rhythmInput');
+    input.value += e.shiftKey ? btn.dataset.note : btn.dataset.note.toLowerCase();
+    input.dispatchEvent(new Event('input'));
+  };
+});
+
+function updateNoteBtnLabels(shifted) {
+  document.querySelectorAll('.note-btn').forEach(btn => {
+    btn.querySelector('span').textContent = shifted ? btn.dataset.note : btn.dataset.note.toLowerCase();
+  });
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Shift') updateNoteBtnLabels(true); });
+document.addEventListener('keyup',   (e) => { if (e.key === 'Shift') updateNoteBtnLabels(false); });
+
+document.getElementById('clearPatternBtn').onclick = () => {
+  const input = document.getElementById('rhythmInput');
+  input.value = '';
+  input.dispatchEvent(new Event('input'));
+};
+
 function updatePatternLength() {
   const str = document.getElementById("rhythmInput").value;
   const bpm = parseFloat(document.getElementById("rhythmBpm").value) || 120;
@@ -76,9 +98,27 @@ function updatePatternLength() {
   el.textContent = parsed ? parsed.totalQuarters + "Q" : "—";
 }
 
+function saveSettings() {
+  localStorage.setItem('rhythmPattern', document.getElementById('rhythmInput').value);
+  localStorage.setItem('rhythmBpm', document.getElementById('rhythmBpm').value);
+  localStorage.setItem('rhythmLatencyComp', document.getElementById('rhythmLatencyComp').checked);
+}
+
+function loadSettings() {
+  const pattern = localStorage.getItem('rhythmPattern');
+  const bpm     = localStorage.getItem('rhythmBpm');
+  const latency = localStorage.getItem('rhythmLatencyComp');
+  if (pattern !== null) document.getElementById('rhythmInput').value = pattern;
+  if (bpm     !== null) document.getElementById('rhythmBpm').value   = bpm;
+  if (latency !== null) document.getElementById('rhythmLatencyComp').checked = (latency === 'true');
+}
+
+document.getElementById('rhythmLatencyComp').onchange = saveSettings;
+
 let rhythmRefreshTimer = null;
 function onRhythmInputChange() {
   updatePatternLength();
+  saveSettings();
   clearTimeout(rhythmRefreshTimer);
   rhythmRefreshTimer = setTimeout(refreshRhythm, 300);
 }
@@ -255,8 +295,8 @@ function updateRhythm(currentTimeMs) {
   while (true) {
     const cycleStart = k * rhythmLoopMs;
     if (cycleStart > elapsed) break;
-    for (const offset of rhythmBeatOffsets) {
-      const relBeat = cycleStart + offset;
+    for (const beat of rhythmBeatOffsets) {
+      const relBeat = cycleStart + beat.ms;
       if (relBeat > lastDrawnRhythmMs && relBeat <= elapsed) {
         createDOMElement("div", "rhythm-line", (rhythmStartMs + relBeat) * PX_PER_MS, null, content);
       }
@@ -293,10 +333,10 @@ function scheduleRhythmAudio(currentTimeMs) {
   while (true) {
     const cycleStart = k * rhythmLoopMs;
     if (cycleStart > scheduleUpToMs) break;
-    for (let i = 0; i < rhythmBeatOffsets.length; i++) {
-      const relBeat = cycleStart + rhythmBeatOffsets[i];
+    for (const beat of rhythmBeatOffsets) {
+      const relBeat = cycleStart + beat.ms;
       if (relBeat > lastScheduledRhythmMs && relBeat <= scheduleUpToMs) {
-        scheduleBeep(rhythmStartAudioTime + relBeat / 1000 - latencyS, i === 0);
+        scheduleBeep(rhythmStartAudioTime + relBeat / 1000 - latencyS, beat.accent);
       }
     }
     k++;
@@ -307,17 +347,18 @@ function scheduleRhythmAudio(currentTimeMs) {
 function parseRhythmPattern(str, bpm) {
   const beatMs = 60000 / bpm;
   const mult = { W: 4, H: 2, Q: 1, E: 0.5, S: 0.25 };
-  // Split on whitespace OR between individual letter tokens (allows "SSSS" or "S S S S")
-  const tokens = str.toUpperCase().replace(/\s+/g, '').split('').filter(c => c.trim());
+  // Preserve case: uppercase = accented, lowercase = normal
+  const tokens = str.replace(/\s+/g, '').split('').filter(c => c.trim());
   if (!tokens.length) return null;
   const offsets = [];
   let cursor = 0;
   let totalQuarters = 0;
   for (const t of tokens) {
-    if (!mult[t]) return null;
-    offsets.push(cursor);
-    cursor += mult[t] * beatMs;
-    totalQuarters += mult[t];
+    const key = t.toUpperCase();
+    if (!mult[key]) return null;
+    offsets.push({ ms: cursor, accent: t === key });
+    cursor += mult[key] * beatMs;
+    totalQuarters += mult[key];
   }
   return { offsets, loopMs: cursor, totalQuarters };
 }
@@ -388,7 +429,8 @@ function chokeNote(noteTarget) {
   }
 }
 
-// Initialize pattern length display on load
+// Restore settings then initialize pattern length display
+loadSettings();
 updatePatternLength();
 
 function createDOMElement(tag, className, left, bottom, parent) {

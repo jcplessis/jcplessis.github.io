@@ -65,15 +65,16 @@ onChoke(note)              // stops a sustained note
 
 Visual metronome layered on the same timeline. Renders green `.rhythm-line` divs at beat positions defined by a user-supplied pattern and BPM. Also plays audible beeps via the Web Audio API.
 
-**UI controls** (`#rhythm-controls` in `index.html`):
-- Pattern text field: tokens `W H Q E S` (whole/half/quarter/eighth/sixteenth), with or without spaces (e.g. `SSSS` or `S S S S`). Default: `SSSS`.
-- BPM number input. Default: 120.
-- Quarter-note length counter (`#rhythmLength`) — updates live as pattern/BPM change.
-- **Rhythm Play** / **Rhythm Stop** buttons
-- **Latency comp** checkbox (checked by default) — subtracts `audioCtx.baseLatency + outputLatency` from scheduled beep times so sound emerges at the visual beat moment.
+**UI controls** (`#rhythm-controls` in `index.html`), split into two rows:
+- **Row 1:** Pattern text field + quarter-note length counter (`#rhythmLength`) + **✕ Clear** button + five note-insert buttons (W H Q E S with SVG icons). Click = appends lowercase (unaccented); Shift+click = appends uppercase (accented). Button labels flip between lower/upper case while Shift is held.
+- **Row 2:** BPM number input + **Rhythm Play** / **Rhythm Stop** + **Latency comp** checkbox (checked by default) — subtracts `audioCtx.baseLatency + outputLatency` from scheduled beep times.
+
+**Pattern case convention:** uppercase letter = accented beep (1500 Hz), lowercase = normal beep (1000 Hz). Default pattern: `Eeee`.
+
+**Persistent settings:** pattern, BPM, and latency-comp are saved to `localStorage` on every change (`saveSettings()`) and restored on page load (`loadSettings()`).
 
 **Key state variables:**
-- `rhythmBeatOffsets` — array of ms offsets (within one cycle) for each beat
+- `rhythmBeatOffsets` — array of `{ ms: number, accent: boolean }` objects (within one cycle) for each beat
 - `rhythmLoopMs` — total cycle duration in ms
 - `rhythmStartMs` — clock time (`timeElapsed`) when Rhythm Play was clicked; beats are positioned relative to this, so the first line always appears at the click moment
 - `lastDrawnRhythmMs` — elapsed time since `rhythmStartMs` up to which lines have been drawn
@@ -83,7 +84,7 @@ Visual metronome layered on the same timeline. Renders green `.rhythm-line` divs
 
 **Rendering:** `updateRhythm(currentTimeMs)` is called every frame from `drawLoop`. It draws beats whose relative time (`cycleStart + offset`) has arrived since the last frame — no lookahead, so lines emerge at the playhead exactly like MIDI note lines.
 
-**Audio:** `scheduleRhythmAudio(currentTimeMs)` runs every frame alongside rendering. Uses Web Audio lookahead scheduling (`osc.start(exactTime)`) for sample-accurate beeps. The first beat of each cycle plays at 1500 Hz (accent); others at 1000 Hz. All routed through `rhythmGain` so Stop/Reset can silence queued beeps instantly via `rhythmGain.gain.value = 0`.
+**Audio:** `scheduleRhythmAudio(currentTimeMs)` runs every frame alongside rendering. Uses Web Audio lookahead scheduling (`osc.start(exactTime)`) for sample-accurate beeps. Accent per beat is driven by `beat.accent` (uppercase letter in pattern = 1500 Hz loud; lowercase = 1000 Hz soft). All routed through `rhythmGain` so Stop/Reset can silence queued beeps instantly via `rhythmGain.gain.value = 0`.
 
 **Live update:** Changing the pattern or BPM while rhythm is active triggers `refreshRhythm()` after a 300 ms debounce — silences queued beeps, clears drawn lines, and re-anchors to the current moment with the new pattern. Invalid/empty pattern stops rhythm cleanly.
 

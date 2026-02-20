@@ -86,8 +86,19 @@
     }
 
     /* Rhythm controls */
-    #rhythm-controls { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-    #rhythmInput { background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; font-size: 14px; width: 220px; }
+    #rhythm-controls { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .rhythm-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    #rhythmInput { background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; font-size: 14px; width: 180px; }
+
+    /* Note insert buttons */
+    .note-btns-group { display: flex; gap: 4px; }
+    .note-btn {
+      padding: 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-width: 34px; font-size: 10px; color: #bbb; line-height: 1;
+      border: 1px dashed #555; background: #2a2a2a;
+    }
+    .note-btn:hover { background: #444; border-style: solid; color: #fff; }
+    .note-btn svg { height: 22px; width: auto; }
 
   </style>
 </head>
@@ -104,16 +115,60 @@
     <button id="resetBtn">Reset</button>
   </div>
   <div id="rhythm-controls">
-    <span>Rhythm:</span>
-    <input type="text" id="rhythmInput" placeholder="SSSS" value="SSSS">
-    <input type="number" id="rhythmBpm" value="120" min="20" max="300" style="width:55px">
-    <span>BPM</span>
-    <span id="rhythmLength" style="font-size:13px;color:#aaa;min-width:28px">1Q</span>
-    <button id="rhythmPlayBtn">Rhythm Play</button>
-    <button id="rhythmStopBtn">Rhythm Stop</button>
-    <label style="font-size:13px;color:#aaa;display:flex;align-items:center;gap:4px">
-      <input type="checkbox" id="rhythmLatencyComp" checked> latency comp
-    </label>
+    <div class="rhythm-row">
+      <span>Pattern:</span>
+      <input type="text" id="rhythmInput" placeholder="Eeee" value="Eeee">
+      <span id="rhythmLength" style="font-size:13px;color:#aaa;min-width:28px">1Q</span>
+      <button id="clearPatternBtn" title="Clear pattern">✕ Clear</button>
+      <div class="note-btns-group">
+        <button class="note-btn" data-note="W" title="Whole note">
+          <svg viewBox="0 0 21 26" aria-hidden="true">
+            <ellipse cx="10" cy="15" rx="8" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+          <span>w</span>
+        </button>
+        <button class="note-btn" data-note="H" title="Half note">
+          <svg viewBox="0 0 21 26" aria-hidden="true">
+            <ellipse cx="8" cy="22" rx="6" ry="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>h</span>
+        </button>
+        <button class="note-btn" data-note="Q" title="Quarter note">
+          <svg viewBox="0 0 21 26" aria-hidden="true">
+            <ellipse cx="8" cy="22" rx="6" ry="4" fill="currentColor"/>
+            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>q</span>
+        </button>
+        <button class="note-btn" data-note="E" title="Eighth note">
+          <svg viewBox="0 0 21 26" aria-hidden="true">
+            <ellipse cx="8" cy="22" rx="6" ry="4" fill="currentColor"/>
+            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M14,4 C20,7 20,14 14,16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>e</span>
+        </button>
+        <button class="note-btn" data-note="S" title="Sixteenth note">
+          <svg viewBox="0 0 21 26" aria-hidden="true">
+            <ellipse cx="8" cy="22" rx="6" ry="4" fill="currentColor"/>
+            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M14,4 C20,7 20,13 14,15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M14,10 C20,13 20,19 14,21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>s</span>
+        </button>
+      </div>
+    </div>
+    <div class="rhythm-row">
+      <input type="number" id="rhythmBpm" value="80" min="20" max="300" style="width:55px">
+      <span>BPM</span>
+      <button id="rhythmPlayBtn">Rhythm Play</button>
+      <button id="rhythmStopBtn">Rhythm Stop</button>
+      <label style="font-size:13px;color:#aaa;display:flex;align-items:center;gap:4px">
+        <input type="checkbox" id="rhythmLatencyComp" checked> latency comp
+      </label>
+    </div>
   </div>
   <div id="deviceList"></div>
 
