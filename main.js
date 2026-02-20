@@ -46,6 +46,13 @@ let rhythmActive = false;
 let rhythmStartMs = 0;    // clock time when rhythm was activated
 let lastDrawnRhythmMs = -1; // elapsed time since rhythmStartMs, last drawn
 
+// Rhythm audio (Web Audio lookahead scheduler)
+let audioCtx = null;
+let rhythmGain = null;
+let rhythmStartAudioTime = 0; // audioCtx.currentTime when rhythm play was clicked
+let lastScheduledRhythmMs = -1;
+const AUDIO_LOOKAHEAD_MS = 150;
+
 // activeNotes : contient les notes en train de "grandir"
 // structure : NoteMIDI -> { element, startX, maxDurationPx }
 const activeNotes = new Map();
@@ -61,14 +68,70 @@ document.getElementById("connectBtn").onclick = connectMIDI;
 document.getElementById("demoBtn").onclick = startDemo;
 document.getElementById("resetBtn").onclick = resetTimeline;
 
+function updatePatternLength() {
+  const str = document.getElementById("rhythmInput").value;
+  const bpm = parseFloat(document.getElementById("rhythmBpm").value) || 120;
+  const parsed = parseRhythmPattern(str, bpm);
+  const el = document.getElementById("rhythmLength");
+  el.textContent = parsed ? parsed.totalQuarters + "Q" : "—";
+}
+
+let rhythmRefreshTimer = null;
+function onRhythmInputChange() {
+  updatePatternLength();
+  clearTimeout(rhythmRefreshTimer);
+  rhythmRefreshTimer = setTimeout(refreshRhythm, 300);
+}
+
+function refreshRhythm() {
+  if (!rhythmActive) return;
+  const str = document.getElementById("rhythmInput").value;
+  const bpm = parseFloat(document.getElementById("rhythmBpm").value) || 120;
+  const parsed = parseRhythmPattern(str, bpm);
+
+  // Silence any already-queued beeps
+  if (rhythmGain) rhythmGain.gain.value = 0;
+  document.querySelectorAll('.rhythm-line').forEach(el => el.remove());
+  lastDrawnRhythmMs = -1;
+  lastScheduledRhythmMs = -1;
+
+  if (!parsed) {
+    rhythmActive = false;
+    return;
+  }
+
+  rhythmBeatOffsets = parsed.offsets;
+  rhythmLoopMs = parsed.loopMs;
+  rhythmStartMs = isRunning ? performance.now() - startTime : 0;
+  if (audioCtx) {
+    rhythmGain.gain.value = 1;
+    rhythmStartAudioTime = audioCtx.currentTime;
+  }
+}
+
+document.getElementById("rhythmInput").oninput = onRhythmInputChange;
+document.getElementById("rhythmBpm").oninput = onRhythmInputChange;
+
 document.getElementById("rhythmPlayBtn").onclick = () => {
-  const str = document.getElementById("rhythmInput").value.trim();
+  const str = document.getElementById("rhythmInput").value;
   const bpm = parseFloat(document.getElementById("rhythmBpm").value) || 120;
   const parsed = parseRhythmPattern(str, bpm);
   if (!parsed) { alert("Invalid pattern. Use tokens: W H Q E S"); return; }
   rhythmBeatOffsets = parsed.offsets;
   rhythmLoopMs = parsed.loopMs;
   lastDrawnRhythmMs = -1;
+  lastScheduledRhythmMs = -1;
+
+  // Init audio context on user gesture
+  if (!audioCtx) {
+    audioCtx = new AudioContext();
+    rhythmGain = audioCtx.createGain();
+    rhythmGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  rhythmGain.gain.value = 1;
+  rhythmStartAudioTime = audioCtx.currentTime;
+
   if (!isRunning) {
     startClock(performance.now());
     rhythmStartMs = 0;
@@ -81,6 +144,8 @@ document.getElementById("rhythmPlayBtn").onclick = () => {
 document.getElementById("rhythmStopBtn").onclick = () => {
   rhythmActive = false;
   lastDrawnRhythmMs = -1;
+  lastScheduledRhythmMs = -1;
+  if (rhythmGain) rhythmGain.gain.value = 0;
   document.querySelectorAll('.rhythm-line').forEach(el => el.remove());
 };
 
@@ -119,8 +184,10 @@ function resetTimeline() {
   rhythmActive = false;
   rhythmStartMs = 0;
   lastDrawnRhythmMs = -1;
+  lastScheduledRhythmMs = -1;
   rhythmBeatOffsets = [];
   rhythmLoopMs = 0;
+  if (rhythmGain) rhythmGain.gain.value = 0;
   statusEl.textContent = "Reset effectué.";
 }
 
@@ -155,6 +222,7 @@ function drawLoop() {
   // 3. Dessiner la grille
   updateGrid(timeElapsed);
   updateRhythm(timeElapsed);
+  scheduleRhythmAudio(timeElapsed);
 
   // 4. Nettoyage
   cleanupDOM(wrapper.scrollLeft);
@@ -198,19 +266,60 @@ function updateRhythm(currentTimeMs) {
   lastDrawnRhythmMs = elapsed;
 }
 
+function scheduleBeep(audioTime, isFirst) {
+  const t = Math.max(audioTime, audioCtx.currentTime);
+  const osc = audioCtx.createOscillator();
+  const env = audioCtx.createGain();
+  osc.frequency.value = isFirst ? 1500 : 1000;
+  const gain = isFirst ? 0.4 : 0.2;
+  env.gain.setValueAtTime(gain, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  osc.connect(env);
+  env.connect(rhythmGain);
+  osc.start(t);
+  osc.stop(t + 0.07);
+}
+
+function scheduleRhythmAudio(currentTimeMs) {
+  if (!rhythmActive || !rhythmLoopMs || !audioCtx) return;
+  const elapsed = currentTimeMs - rhythmStartMs;
+  if (elapsed < 0) return;
+
+  const latencyComp = document.getElementById("rhythmLatencyComp").checked;
+  const latencyS = latencyComp ? (audioCtx.baseLatency || 0) + (audioCtx.outputLatency || 0) : 0;
+  const scheduleUpToMs = elapsed + AUDIO_LOOKAHEAD_MS;
+  let k = Math.max(0, Math.floor(Math.max(0, lastScheduledRhythmMs) / rhythmLoopMs));
+
+  while (true) {
+    const cycleStart = k * rhythmLoopMs;
+    if (cycleStart > scheduleUpToMs) break;
+    for (let i = 0; i < rhythmBeatOffsets.length; i++) {
+      const relBeat = cycleStart + rhythmBeatOffsets[i];
+      if (relBeat > lastScheduledRhythmMs && relBeat <= scheduleUpToMs) {
+        scheduleBeep(rhythmStartAudioTime + relBeat / 1000 - latencyS, i === 0);
+      }
+    }
+    k++;
+  }
+  lastScheduledRhythmMs = scheduleUpToMs;
+}
+
 function parseRhythmPattern(str, bpm) {
   const beatMs = 60000 / bpm;
   const mult = { W: 4, H: 2, Q: 1, E: 0.5, S: 0.25 };
-  const tokens = str.toUpperCase().split(/\s+/).filter(Boolean);
+  // Split on whitespace OR between individual letter tokens (allows "SSSS" or "S S S S")
+  const tokens = str.toUpperCase().replace(/\s+/g, '').split('').filter(c => c.trim());
   if (!tokens.length) return null;
   const offsets = [];
   let cursor = 0;
+  let totalQuarters = 0;
   for (const t of tokens) {
     if (!mult[t]) return null;
     offsets.push(cursor);
     cursor += mult[t] * beatMs;
+    totalQuarters += mult[t];
   }
-  return { offsets, loopMs: cursor };
+  return { offsets, loopMs: cursor, totalQuarters };
 }
 
 function cleanupDOM(scrollLeft) {
@@ -278,6 +387,9 @@ function chokeNote(noteTarget) {
     activeNotes.delete(noteTarget);
   }
 }
+
+// Initialize pattern length display on load
+updatePatternLength();
 
 function createDOMElement(tag, className, left, bottom, parent) {
   const el = document.createElement(tag);

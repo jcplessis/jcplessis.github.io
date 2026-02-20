@@ -27,6 +27,8 @@ function updateDeviceList() {
   deviceList.innerHTML = inputs.length ? inputs.map(i => i.name).join(", ") : "Pas de source MIDI";
 }
 
+connectMIDI();
+
 function handleMIDIMessage(msg) {
   const [cmd, note, value] = msg.data;
 

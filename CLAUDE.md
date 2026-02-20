@@ -37,6 +37,8 @@ onChoke(note)              // stops a sustained note
 
 **Timestamp precision:** `midi.js` uses `msg.timeStamp` from the `MIDIMessageEvent` — this is the hardware-received time, more precise than calling `performance.now()` at handler time. `demo.js` uses `performance.now()` at the moment each `setTimeout` fires (same epoch, compatible with `msg.timeStamp`). `startTime` in `main.js` is always set from one of these timestamps, never from a deferred `performance.now()` call.
 
+**Auto-connect:** `midi.js` calls `connectMIDI()` on load, prompting for MIDI permission immediately. The Connect button re-runs it if needed.
+
 ### Rendering Core (`main.js`)
 
 - **`NOTE_CONFIG`** maps MIDI note numbers (e.g. 36=Kick, 38=Snare, 42=Hi-Hat Closed) to vertical `y` position, color, and type
@@ -61,19 +63,28 @@ onChoke(note)              // stops a sustained note
 
 ### Rhythm Guide (`main.js`)
 
-Visual metronome layered on the same timeline. Renders green `.rhythm-line` divs at beat positions defined by a user-supplied pattern and BPM.
+Visual metronome layered on the same timeline. Renders green `.rhythm-line` divs at beat positions defined by a user-supplied pattern and BPM. Also plays audible beeps via the Web Audio API.
 
 **UI controls** (`#rhythm-controls` in `index.html`):
-- Pattern text field: space-separated tokens `W H Q E S` (whole/half/quarter/eighth/sixteenth)
-- BPM number input
+- Pattern text field: tokens `W H Q E S` (whole/half/quarter/eighth/sixteenth), with or without spaces (e.g. `SSSS` or `S S S S`). Default: `SSSS`.
+- BPM number input. Default: 120.
+- Quarter-note length counter (`#rhythmLength`) — updates live as pattern/BPM change.
 - **Rhythm Play** / **Rhythm Stop** buttons
+- **Latency comp** checkbox (checked by default) — subtracts `audioCtx.baseLatency + outputLatency` from scheduled beep times so sound emerges at the visual beat moment.
 
 **Key state variables:**
 - `rhythmBeatOffsets` — array of ms offsets (within one cycle) for each beat
 - `rhythmLoopMs` — total cycle duration in ms
 - `rhythmStartMs` — clock time (`timeElapsed`) when Rhythm Play was clicked; beats are positioned relative to this, so the first line always appears at the click moment
 - `lastDrawnRhythmMs` — elapsed time since `rhythmStartMs` up to which lines have been drawn
+- `rhythmStartAudioTime` — `audioCtx.currentTime` captured at Rhythm Play; audio beats are offset from this
+- `lastScheduledRhythmMs` — how far ahead (in rhythm-relative ms) audio has been scheduled
+- `AUDIO_LOOKAHEAD_MS` (150) — how far ahead to schedule beeps each frame
 
 **Rendering:** `updateRhythm(currentTimeMs)` is called every frame from `drawLoop`. It draws beats whose relative time (`cycleStart + offset`) has arrived since the last frame — no lookahead, so lines emerge at the playhead exactly like MIDI note lines.
+
+**Audio:** `scheduleRhythmAudio(currentTimeMs)` runs every frame alongside rendering. Uses Web Audio lookahead scheduling (`osc.start(exactTime)`) for sample-accurate beeps. The first beat of each cycle plays at 1500 Hz (accent); others at 1000 Hz. All routed through `rhythmGain` so Stop/Reset can silence queued beeps instantly via `rhythmGain.gain.value = 0`.
+
+**Live update:** Changing the pattern or BPM while rhythm is active triggers `refreshRhythm()` after a 300 ms debounce — silences queued beeps, clears drawn lines, and re-anchors to the current moment with the new pattern. Invalid/empty pattern stops rhythm cleanly.
 
 **Layering:** Rhythm Play starts the clock if not already running, or attaches to the existing clock (MIDI / Demo can run simultaneously). Reset clears all rhythm state.

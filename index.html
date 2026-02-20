@@ -105,11 +105,15 @@
   </div>
   <div id="rhythm-controls">
     <span>Rhythm:</span>
-    <input type="text" id="rhythmInput" placeholder="W H H Q Q Q Q" value="W H H Q Q Q Q">
+    <input type="text" id="rhythmInput" placeholder="SSSS" value="SSSS">
     <input type="number" id="rhythmBpm" value="120" min="20" max="300" style="width:55px">
     <span>BPM</span>
+    <span id="rhythmLength" style="font-size:13px;color:#aaa;min-width:28px">1Q</span>
     <button id="rhythmPlayBtn">Rhythm Play</button>
     <button id="rhythmStopBtn">Rhythm Stop</button>
+    <label style="font-size:13px;color:#aaa;display:flex;align-items:center;gap:4px">
+      <input type="checkbox" id="rhythmLatencyComp" checked> latency comp
+    </label>
   </div>
   <div id="deviceList"></div>
 
