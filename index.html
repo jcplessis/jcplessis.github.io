@@ -78,6 +78,17 @@
       filter: grayscale(0.5);
     }
 
+    /* Rhythm guide lines */
+    .rhythm-line {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: rgba(0, 220, 80, 0.55);
+      z-index: 0;
+    }
+
+    /* Rhythm controls */
+    #rhythm-controls { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+    #rhythmInput { background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; font-size: 14px; width: 220px; }
+
   </style>
 </head>
 <body>
@@ -91,6 +102,14 @@
     <button id="connectBtn">Connecter MIDI</button>
     <button id="demoBtn">Demo</button>
     <button id="resetBtn">Reset</button>
+  </div>
+  <div id="rhythm-controls">
+    <span>Rhythm:</span>
+    <input type="text" id="rhythmInput" placeholder="W H H Q Q Q Q" value="W H H Q Q Q Q">
+    <input type="number" id="rhythmBpm" value="120" min="20" max="300" style="width:55px">
+    <span>BPM</span>
+    <button id="rhythmPlayBtn">Rhythm Play</button>
+    <button id="rhythmStopBtn">Rhythm Stop</button>
   </div>
   <div id="deviceList"></div>
 

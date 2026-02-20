@@ -58,3 +58,22 @@ onChoke(note)              // stops a sustained note
 - 5-bar rock beat at 120 BPM (10 000 ms loop), loops indefinitely
 - Uses `demoTimeouts` array (array of timeout IDs) to allow `resetTimeline()` to cancel the loop via `clearDemoTimeouts()`
 - Clicking **Reset** stops the demo; clicking **Demo** again restarts it from scratch
+
+### Rhythm Guide (`main.js`)
+
+Visual metronome layered on the same timeline. Renders green `.rhythm-line` divs at beat positions defined by a user-supplied pattern and BPM.
+
+**UI controls** (`#rhythm-controls` in `index.html`):
+- Pattern text field: space-separated tokens `W H Q E S` (whole/half/quarter/eighth/sixteenth)
+- BPM number input
+- **Rhythm Play** / **Rhythm Stop** buttons
+
+**Key state variables:**
+- `rhythmBeatOffsets` — array of ms offsets (within one cycle) for each beat
+- `rhythmLoopMs` — total cycle duration in ms
+- `rhythmStartMs` — clock time (`timeElapsed`) when Rhythm Play was clicked; beats are positioned relative to this, so the first line always appears at the click moment
+- `lastDrawnRhythmMs` — elapsed time since `rhythmStartMs` up to which lines have been drawn
+
+**Rendering:** `updateRhythm(currentTimeMs)` is called every frame from `drawLoop`. It draws beats whose relative time (`cycleStart + offset`) has arrived since the last frame — no lookahead, so lines emerge at the playhead exactly like MIDI note lines.
+
+**Layering:** Rhythm Play starts the clock if not already running, or attaches to the existing clock (MIDI / Demo can run simultaneously). Reset clears all rhythm state.

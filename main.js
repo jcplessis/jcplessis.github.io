@@ -39,6 +39,13 @@ let isRunning = false;
 let animationId = null;
 let lastDrawnSecond = -1;
 
+// Rhythm guide
+let rhythmBeatOffsets = [];
+let rhythmLoopMs = 0;
+let rhythmActive = false;
+let rhythmStartMs = 0;    // clock time when rhythm was activated
+let lastDrawnRhythmMs = -1; // elapsed time since rhythmStartMs, last drawn
+
 // activeNotes : contient les notes en train de "grandir"
 // structure : NoteMIDI -> { element, startX, maxDurationPx }
 const activeNotes = new Map();
@@ -53,6 +60,29 @@ const deviceList = document.getElementById("deviceList");
 document.getElementById("connectBtn").onclick = connectMIDI;
 document.getElementById("demoBtn").onclick = startDemo;
 document.getElementById("resetBtn").onclick = resetTimeline;
+
+document.getElementById("rhythmPlayBtn").onclick = () => {
+  const str = document.getElementById("rhythmInput").value.trim();
+  const bpm = parseFloat(document.getElementById("rhythmBpm").value) || 120;
+  const parsed = parseRhythmPattern(str, bpm);
+  if (!parsed) { alert("Invalid pattern. Use tokens: W H Q E S"); return; }
+  rhythmBeatOffsets = parsed.offsets;
+  rhythmLoopMs = parsed.loopMs;
+  lastDrawnRhythmMs = -1;
+  if (!isRunning) {
+    startClock(performance.now());
+    rhythmStartMs = 0;
+  } else {
+    rhythmStartMs = performance.now() - startTime;
+  }
+  rhythmActive = true;
+};
+
+document.getElementById("rhythmStopBtn").onclick = () => {
+  rhythmActive = false;
+  lastDrawnRhythmMs = -1;
+  document.querySelectorAll('.rhythm-line').forEach(el => el.remove());
+};
 
 // --- PROVIDER CALLBACKS (called by midi.js and demo.js) ---
 
@@ -86,6 +116,11 @@ function resetTimeline() {
   activeNotes.clear();
   wrapper.scrollLeft = 0;
   if (animationId) cancelAnimationFrame(animationId);
+  rhythmActive = false;
+  rhythmStartMs = 0;
+  lastDrawnRhythmMs = -1;
+  rhythmBeatOffsets = [];
+  rhythmLoopMs = 0;
   statusEl.textContent = "Reset effectué.";
 }
 
@@ -119,6 +154,7 @@ function drawLoop() {
 
   // 3. Dessiner la grille
   updateGrid(timeElapsed);
+  updateRhythm(timeElapsed);
 
   // 4. Nettoyage
   cleanupDOM(wrapper.scrollLeft);
@@ -138,6 +174,43 @@ function updateGrid(currentTimeMs) {
     }
     lastDrawnSecond = targetSecond;
   }
+}
+
+function updateRhythm(currentTimeMs) {
+  if (!rhythmActive || !rhythmLoopMs) return;
+  const elapsed = currentTimeMs - rhythmStartMs; // time since rhythm was activated
+  if (elapsed < 0) return;
+
+  // lastDrawnRhythmMs tracks elapsed time (relative to rhythmStartMs)
+  let k = Math.max(0, Math.floor(Math.max(0, lastDrawnRhythmMs) / rhythmLoopMs));
+
+  while (true) {
+    const cycleStart = k * rhythmLoopMs;
+    if (cycleStart > elapsed) break;
+    for (const offset of rhythmBeatOffsets) {
+      const relBeat = cycleStart + offset;
+      if (relBeat > lastDrawnRhythmMs && relBeat <= elapsed) {
+        createDOMElement("div", "rhythm-line", (rhythmStartMs + relBeat) * PX_PER_MS, null, content);
+      }
+    }
+    k++;
+  }
+  lastDrawnRhythmMs = elapsed;
+}
+
+function parseRhythmPattern(str, bpm) {
+  const beatMs = 60000 / bpm;
+  const mult = { W: 4, H: 2, Q: 1, E: 0.5, S: 0.25 };
+  const tokens = str.toUpperCase().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return null;
+  const offsets = [];
+  let cursor = 0;
+  for (const t of tokens) {
+    if (!mult[t]) return null;
+    offsets.push(cursor);
+    cursor += mult[t] * beatMs;
+  }
+  return { offsets, loopMs: cursor };
 }
 
 function cleanupDOM(scrollLeft) {
