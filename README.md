@@ -1,1 +1,1 @@
-Blog JC Plessis
+JC Plessis
