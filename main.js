@@ -128,14 +128,15 @@ function drawLoop() {
 
 function updateGrid(currentTimeMs) {
   const currentSecond = Math.floor(currentTimeMs / 1000);
-  if (currentSecond > lastDrawnSecond) {
-    for (let s = lastDrawnSecond + 1; s <= currentSecond + 2; s++) {
+  const targetSecond = currentSecond + 2;
+  if (targetSecond > lastDrawnSecond) {
+    for (let s = lastDrawnSecond + 1; s <= targetSecond; s++) {
       const x = (s * 1000) * PX_PER_MS;
       createDOMElement("div", "grid-line", x, null, content);
       const label = createDOMElement("div", "grid-label", x, null, content);
       label.innerText = s + "s";
     }
-    lastDrawnSecond = currentSecond;
+    lastDrawnSecond = targetSecond;
   }
 }
 
