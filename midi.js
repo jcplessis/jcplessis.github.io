@@ -46,7 +46,7 @@ function handleMIDIMessage(msg) {
 
   // NOTE ON
   if ((cmd >= 144 && cmd <= 159) && value > 0) {
-    onNoteOn(note, timestamp);
+    onNoteOn(note, timestamp, value);
   }
   // POLYPHONIC AFTERTOUCH -> CHOKE
   else if (cmd === 169 && value > 0) {

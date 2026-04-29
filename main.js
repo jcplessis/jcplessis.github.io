@@ -195,8 +195,8 @@ function onStart(timestamp) {
   startClock(timestamp);
 }
 
-function onNoteOn(note, timestamp) {
-  handleNoteOn(note, timestamp);
+function onNoteOn(note, timestamp, value) {
+  handleNoteOn(note, timestamp, value);
 }
 
 function onChoke(note) {
@@ -381,7 +381,7 @@ function cleanupDOM(scrollLeft) {
 
 // --- NOTE RENDERING ---
 
-function handleNoteOn(note, timestamp) {
+function handleNoteOn(note, timestamp, value) {
   if (!startTime) return;
   const x = (timestamp - startTime) * PX_PER_MS;
 
@@ -399,11 +399,13 @@ function handleNoteOn(note, timestamp) {
 
   // Trait vertical de départ
   const lineEl = createDOMElement("div", "note-line", x, null, content);
+  const noteStrength = Math.sqrt(value) * 2;
 
   if (isSustained) {
     const barEl = createDOMElement("div", "note-bar", x, y - 7, content);
     barEl.style.backgroundColor = color;
     barEl.style.width = "0px";
+    barEl.style.height = noteStrength + "px";
 
     activeNotes.set(note, {
       element: barEl,
@@ -414,9 +416,13 @@ function handleNoteOn(note, timestamp) {
   } else {
     const markerEl = document.createElement("div");
     markerEl.className = "note-marker" + (isRim ? " rim" : "");
-    markerEl.style.bottom = (y - 6) + "px";
+
+    markerEl.style.bottom = (y - 6 - noteStrength / 2) + "px";
     markerEl.style.backgroundColor = color;
     markerEl.style.color = color;
+    markerEl.style.height = noteStrength + "px";
+    markerEl.style.width = noteStrength + "px";
+    markerEl.style.left = -noteStrength / 2 + "px";
     lineEl.appendChild(markerEl);
   }
 }
