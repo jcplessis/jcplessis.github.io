@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entraînement Batterie</title>
+<style>
+  :root {
+    --bg: #17140f;
+    --bg-panel: #211c15;
+    --bg-panel-2: #2a241a;
+    --line: #3a3226;
+    --amber: #e0a237;
+    --amber-dim: #8a672a;
+    --text: #ece5d4;
+    --text-dim: #a89a80;
+    --red: #c65a3d;
+    --green: #6f9a5a;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Courier New', Courier, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at top, #241f16 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: var(--font-ui);
+    padding: 32px 16px 64px;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+  }
+
+  header .beat {
+    font-family: var(--font-mono);
+    color: var(--amber);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    border: 1px solid var(--amber-dim);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 28px;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .panel h2 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--amber);
+    margin: 0 0 14px 0;
+  }
+
+  .url-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 11px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: var(--font-ui);
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--amber-dim);
+  }
+
+  button {
+    cursor: pointer;
+    border-radius: 6px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: var(--bg-panel-2);
+    color: var(--text);
+    padding: 11px 16px;
+    font-size: 14px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  button:hover { border-color: var(--amber-dim); }
+  button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  button:active { transform: translateY(1px); }
+
+  button.primary {
+    background: var(--amber);
+    color: #1a1509;
+    border-color: var(--amber);
+  }
+  button.primary:hover { background: #ecb14a; }
+
+  #player-shell {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  #player { width: 100%; height: 100%; }
+
+  .placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: repeating-linear-gradient(135deg, #000 0 10px, #0c0a06 10px 20px);
+    border-radius: 6px;
+  }
+
+  .speed-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .speed-btn {
+    text-align: center;
+    font-family: var(--font-mono);
+    padding: 12px 4px;
+  }
+  .speed-btn.active {
+    background: var(--amber);
+    color: #1a1509;
+    border-color: var(--amber);
+  }
+
+  .speed-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+
+  .loop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .point-box {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px;
+  }
+  .point-box .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .point-box .time-val {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    color: var(--amber);
+    margin-bottom: 10px;
+  }
+  .point-box .point-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .point-box .point-actions button {
+    flex: 1;
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .loop-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--amber); cursor: pointer; }
+
+  #status {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-dim);
+    min-height: 18px;
+    margin-top: 4px;
+  }
+  #status.err { color: var(--red); }
+  #status.ok { color: var(--green); }
+
+  .hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  #video-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--text);
+    margin: 12px 0 0 0;
+    min-height: 20px;
+  }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .history-header h2 { margin: 0; }
+  .history-header button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  #history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+  }
+  .history-item:hover { border-color: var(--amber-dim); }
+  .history-item img {
+    width: 64px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .history-item .h-info {
+    min-width: 0;
+    flex: 1;
+  }
+  .history-item .h-title {
+    font-size: 13.5px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-item .h-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .empty-history {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="beat">1&nbsp;e&nbsp;&amp;&nbsp;a</span>
+    <h1>Entraînement Batterie</h1>
+  </header>
+
+  <div class="panel">
+    <h2>Vidéo</h2>
+    <div class="url-row">
+      <input type="text" id="url-input" placeholder="Colle l'URL YouTube ici (ex: https://www.youtube.com/watch?v=...)">
+      <button class="primary" id="load-btn">Charger</button>
+    </div>
+    <div id="status"></div>
+    <div style="margin-top:14px;">
+      <div class="placeholder" id="placeholder">en attente d'une vidéo</div>
+      <div id="player-shell" style="display:none;"><div id="player"></div></div>
+    </div>
+    <div id="video-title"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Vitesse de lecture</h2>
+    <div class="speed-row">
+      <button class="speed-btn" data-rate="0.5">50%</button>
+      <button class="speed-btn" data-rate="0.6">60%</button>
+      <button class="speed-btn" data-rate="0.7">70%</button>
+      <button class="speed-btn" data-rate="0.8">80%</button>
+      <button class="speed-btn" data-rate="0.9">90%</button>
+      <button class="speed-btn active" data-rate="1">100%</button>
+    </div>
+    <div class="speed-note" id="speed-note">Vitesse appliquée : 100%</div>
+    <div class="hint">L'indicateur ci-dessus confirme la vitesse réellement appliquée par YouTube (certaines vidéos plus anciennes peuvent ne pas accepter tous les paliers).</div>
+  </div>
+
+  <div class="panel">
+    <h2>Boucle A → B</h2>
+    <div class="loop-grid">
+      <div class="point-box">
+        <div class="label">Point de départ (A)</div>
+        <div class="time-val" id="start-val">--:--</div>
+        <div class="point-actions">
+          <button id="set-start-btn">Marquer ici</button>
+          <button id="goto-start-btn">Aller à A</button>
+        </div>
+      </div>
+      <div class="point-box">
+        <div class="label">Point de fin (B)</div>
+        <div class="time-val" id="end-val">--:--</div>
+        <div class="point-actions">
+          <button id="set-end-btn">Marquer ici</button>
+          <button id="goto-end-btn">Aller à B</button>
+        </div>
+      </div>
+    </div>
+    <div class="loop-controls">
+      <label class="toggle">
+        <input type="checkbox" id="loop-toggle">
+        Activer la boucle
+      </label>
+      <button id="clear-loop-btn">Effacer A / B</button>
+    </div>
+    <div class="hint">Lance la vidéo, mets-la en pause au bon endroit puis clique « Marquer ici » pour A et B. Une fois la boucle activée, la lecture revient automatiquement à A dès qu'elle atteint B.</div>
+  </div>
+
+  <div class="panel">
+    <div class="history-header">
+      <h2>Historique</h2>
+      <button id="clear-history-btn">Vider l'historique</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<script>
+  // ---------- Utilitaires ----------
+  function extractVideoId(url) {
+    const patterns = [
+      /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    ];
+    for (const re of patterns) {
+      const m = url.match(re);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  function extractStartTime(url) {
+    const m = url.match(/[?&]t=(\d+)s?/) || url.match(/[?&]start=(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  }
+
+  function formatTime(sec) {
+    if (sec === null || sec === undefined || isNaN(sec)) return '--:--';
+    sec = Math.max(0, Math.floor(sec));
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = type ? type : '';
+  }
+
+  // ---------- État ----------
+  let player = null;
+  let apiReady = false;
+  let pendingVideoId = null;
+  let pendingStartTime = 0;
+  let loopStart = null;
+  let loopEnd = null;
+  let loopActive = false;
+  let currentRate = 1;
+  let loopInterval = null;
+  const HISTORY_KEY = 'drum-trainer-history';
+  let history = loadHistory(); // { videoId, title, addedAt }
+
+  // ---------- Chargement API YouTube ----------
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
+
+  window.onYouTubeIframeAPIReady = function() {
+    apiReady = true;
+    if (pendingVideoId) {
+      createPlayer(pendingVideoId, pendingStartTime);
+    }
+  };
+
+  function createPlayer(videoId, startSeconds) {
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('player-shell').style.display = 'block';
+
+    if (player) {
+      player.loadVideoById({ videoId: videoId, startSeconds: startSeconds || 0 });
+      return;
+    }
+
+    player = new YT.Player('player', {
+      videoId: videoId,
+      playerVars: {
+        start: startSeconds || 0,
+        rel: 0,
+        origin: window.location.origin
+      },
+      events: {
+        'onReady': function() {
+          setStatus('Vidéo chargée. Prêt à jouer.', 'ok');
+          applyRate(currentRate);
+          startLoopWatcher();
+        },
+        'onError': function() {
+          setStatus('Impossible de charger cette vidéo (vérifie l\'URL).', 'err');
+        }
+      }
+    });
+  }
+
+  // ---------- Chargement d'URL ----------
+  document.getElementById('load-btn').addEventListener('click', function() {
+    const raw = document.getElementById('url-input').value.trim();
+    if (!raw) { setStatus('Colle d\'abord une URL YouTube.', 'err'); return; }
+    const videoId = extractVideoId(raw);
+    if (!videoId) { setStatus('URL YouTube non reconnue.', 'err'); return; }
+    const start = extractStartTime(raw);
+    openVideo(videoId, start);
+  });
+  document.getElementById('url-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('load-btn').click();
+  });
+
+  function openVideo(videoId, startSeconds) {
+    // reset boucle sur nouvelle vidéo
+    loopStart = null;
+    loopEnd = null;
+    loopActive = false;
+    document.getElementById('loop-toggle').checked = false;
+    document.getElementById('start-val').textContent = '--:--';
+    document.getElementById('end-val').textContent = '--:--';
+    document.getElementById('video-title').textContent = '';
+
+    setStatus('Chargement de la vidéo…', '');
+
+    if (apiReady) {
+      createPlayer(videoId, startSeconds || 0);
+    } else {
+      pendingVideoId = videoId;
+      pendingStartTime = startSeconds || 0;
+    }
+
+    fetchTitle(videoId).then(title => {
+      document.getElementById('video-title').textContent = title || '';
+      addToHistory(videoId, title);
+    });
+  }
+
+  // ---------- Titre (oEmbed, pas besoin de clé API) ----------
+  async function fetchTitle(videoId) {
+    try {
+      const res = await fetch('https://www.youtube.com/oembed?format=json&url=' +
+        encodeURIComponent('https://www.youtube.com/watch?v=' + videoId));
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.title || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ---------- Historique ----------
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveHistory() {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    } catch (e) {
+      // stockage indisponible (navigation privée, quota...) : on continue sans persister
+    }
+  }
+
+  function addToHistory(videoId, title) {
+    history = history.filter(h => h.videoId !== videoId);
+    history.unshift({ videoId: videoId, title: title || 'Vidéo YouTube (' + videoId + ')', addedAt: Date.now() });
+    history = history.slice(0, 20);
+    saveHistory();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    if (history.length === 0) {
+      list.innerHTML = '<div class="empty-history">Aucune vidéo ouverte pour l\'instant.</div>';
+      return;
+    }
+    history.forEach(entry => {
+      const item = document.createElement('button');
+      item.className = 'history-item';
+      item.type = 'button';
+      const when = new Date(entry.addedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      item.innerHTML =
+        '<img src="https://img.youtube.com/vi/' + entry.videoId + '/mqdefault.jpg" alt="">' +
+        '<div class="h-info">' +
+          '<div class="h-title">' + escapeHtml(entry.title) + '</div>' +
+          '<div class="h-meta">ouverte le ' + when + '</div>' +
+        '</div>';
+      item.addEventListener('click', function() {
+        document.getElementById('url-input').value = 'https://www.youtube.com/watch?v=' + entry.videoId;
+        openVideo(entry.videoId, 0);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById('clear-history-btn').addEventListener('click', function() {
+    history = [];
+    saveHistory();
+    renderHistory();
+  });
+
+  renderHistory();
+
+  // ---------- Vitesse ----------
+  const speedButtons = document.querySelectorAll('.speed-btn');
+  speedButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const rate = parseFloat(btn.dataset.rate);
+      currentRate = rate;
+      speedButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyRate(rate);
+    });
+  });
+
+  function applyRate(rate) {
+    if (!player || typeof player.setPlaybackRate !== 'function') return;
+    player.setPlaybackRate(rate);
+    // YouTube peut arrondir au palier disponible le plus proche : on vérifie après coup
+    setTimeout(() => {
+      const applied = player.getPlaybackRate ? player.getPlaybackRate() : rate;
+      document.getElementById('speed-note').textContent =
+        'Vitesse appliquée : ' + Math.round(applied * 100) + '%';
+    }, 300);
+  }
+
+  // ---------- Boucle A/B ----------
+  document.getElementById('set-start-btn').addEventListener('click', function() {
+    if (!player || !player.getCurrentTime) { setStatus('Charge une vidéo d\'abord.', 'err'); return; }
+    loopStart = player.getCurrentTime();
+    document.getElementById('start-val').textContent = formatTime(loopStart);
+  });
+
+  document.getElementById('set-end-btn').addEventListener('click', function() {
+    if (!player || !player.getCurrentTime) { setStatus('Charge une vidéo d\'abord.', 'err'); return; }
+    loopEnd = player.getCurrentTime();
+    document.getElementById('end-val').textContent = formatTime(loopEnd);
+  });
+
+  document.getElementById('goto-start-btn').addEventListener('click', function() {
+    if (player && loopStart !== null) player.seekTo(loopStart, true);
+  });
+
+  document.getElementById('goto-end-btn').addEventListener('click', function() {
+    if (player && loopEnd !== null) player.seekTo(loopEnd, true);
+  });
+
+  document.getElementById('clear-loop-btn').addEventListener('click', function() {
+    loopStart = null;
+    loopEnd = null;
+    loopActive = false;
+    document.getElementById('loop-toggle').checked = false;
+    document.getElementById('start-val').textContent = '--:--';
+    document.getElementById('end-val').textContent = '--:--';
+  });
+
+  document.getElementById('loop-toggle').addEventListener('change', function(e) {
+    if (e.target.checked && (loopStart === null || loopEnd === null)) {
+      setStatus('Marque un point A et un point B avant d\'activer la boucle.', 'err');
+      e.target.checked = false;
+      loopActive = false;
+      return;
+    }
+    if (e.target.checked && loopStart >= loopEnd) {
+      setStatus('Le point A doit être avant le point B.', 'err');
+      e.target.checked = false;
+      loopActive = false;
+      return;
+    }
+    loopActive = e.target.checked;
+    if (loopActive) setStatus('Boucle active.', 'ok');
+  });
+
+  function startLoopWatcher() {
+    if (loopInterval) clearInterval(loopInterval);
+    loopInterval = setInterval(function() {
+      if (!loopActive || !player || !player.getCurrentTime) return;
+      const t = player.getCurrentTime();
+      if (t >= loopEnd) {
+        player.seekTo(loopStart, true);
+      }
+    }, 200);
+  }
+</script>
+</body>
+</html>
