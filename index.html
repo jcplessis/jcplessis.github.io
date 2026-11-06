@@ -1,183 +1,118 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MIDI Timeline - Progressive & Choke</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥁</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JC Plessis</title>
   <style>
-    /* --- Base --- */
-    body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: #eee; padding: 20px; margin: 0; overflow: hidden; }
-    h1 { margin-bottom: 10px; font-weight: 300; display: inline-block; margin-right: 20px; }
-    
-    /* --- Controls --- */
-    #controls { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-    button { padding: 8px 16px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; border-radius: 4px; }
-    button:hover { background: #555; }
-    button#resetBtn { background: #500; border-color: #700; }
-    
-    #status { font-size: 14px; color: #aaa; margin-left: 10px; font-variant-numeric: tabular-nums; }
-    #deviceList { margin-bottom: 10px; font-size: 0.85em; color: #888; }
-
-    /* --- Timeline --- */
-    #timeline-wrapper {
-      position: relative;
-      height: 450px;
-      background: #222;
-      border: 1px solid #444;
-      overflow: hidden; 
-      box-shadow: inset 0 0 30px #000;
+    :root {
+      --bg: #0e1222;
+      --surface: #171c31;
+      --fg: #e8ebf5;
+      --muted: #9aa2c2;
+      --accent: #7d9bff;
+      --border: #2a3150;
+      color-scheme: dark;
     }
-
-    #timeline-content {
-      position: relative;
-      height: 100%;
-      width: 1000000px; 
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #eef1f8;
+        --surface: #ffffff;
+        --fg: #151a2b;
+        --muted: #5b6280;
+        --accent: #2347b8;
+        --border: #d6dbea;
+        color-scheme: light;
+      }
     }
-
-    /* --- Elements --- */
-    .grid-line {
-      position: absolute; top: 0; bottom: 20px; width: 1px;
-      border-left: 1px dashed rgba(255, 255, 180, 0.2);
-      z-index: 0;
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 16px 64px;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
     }
-    .grid-label {
-      position: absolute; bottom: 2px; font-size: 11px; color: rgba(255, 255, 180, 0.4);
-      transform: translateX(-50%);
+    .container { max-width: 900px; margin: 0 auto; }
+    header {
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
     }
-
-    .note-line {
-      position: absolute; top: 0; bottom: 0; width: 1px;
-      background: rgba(255, 255, 255, 0.3); 
-      z-index: 1; pointer-events: none;
+    h1 {
+      margin: 0 0 4px;
+      font-size: 2rem;
+      font-weight: 300;
+      letter-spacing: .02em;
     }
-
-    /* Marqueur rond (Hits) */
-    .note-marker {
-      position: absolute; left: -6px; width: 12px; height: 12px;
-      border-radius: 50%;
-      z-index: 3;
-      box-sizing: border-box;
+    h1 strong { font-weight: 700; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
     }
-    .note-marker.rim { border: 2px solid #ff0000; box-shadow: 0 0 6px #ff0000; }
-
-    /* Barre de cymbale */
-    .note-bar {
-      position: absolute; height: 14px;
-      border-radius: 4px; opacity: 0.9; z-index: 2;
-      /* Dégradé pour effet de traînée */
-      background-image: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.1) 100%);
-      border-left: 2px solid #fff;
-      /* Pas de transition CSS ici car on anime la width en JS frame par frame */
+    .card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color .15s, transform .15s;
     }
-    
-    /* Style ajouté quand la note est étouffée */
-    .choked {
-      border-right: 3px solid red; /* Marque rouge à la fin */
-      opacity: 0.6;
-      filter: grayscale(0.5);
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
-
-    /* Rhythm guide lines */
-    .rhythm-line {
-      position: absolute; top: 0; bottom: 0; width: 2px;
-      background: rgba(0, 220, 80, 0.55);
-      z-index: 0;
+    .card-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .card-title {
+      margin: 0 0 6px;
+      font-size: 1.2rem;
+      font-weight: 600;
     }
-
-    /* Rhythm controls */
-    #rhythm-controls { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-    .rhythm-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    #rhythmInput { background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; font-size: 14px; width: 180px; }
-
-    /* Note insert buttons */
-    .note-btns-group { display: flex; gap: 4px; }
-    .note-btn {
-      padding: 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;
-      min-width: 34px; font-size: 10px; color: #bbb; line-height: 1;
-      border: 1px dashed #555; background: #2a2a2a;
+    .card-desc {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+      line-height: 1.55;
     }
-    .note-btn:hover { background: #444; border-style: solid; color: #fff; }
-    .note-btn svg { height: 22px; width: auto; }
-
+    .card-tag {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 2px 8px;
+      background: var(--border);
+      border-radius: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
   </style>
 </head>
 <body>
-
-  <div>
-    <h1>MIDI Monitor</h1>
-    <span id="status">En attente...</span>
-  </div>
-  
-  <div id="controls">
-    <button id="connectBtn">Connecter MIDI</button>
-    <button id="demoBtn">Demo</button>
-    <button id="resetBtn">Reset</button>
-  </div>
-  <div id="rhythm-controls">
-    <div class="rhythm-row">
-      <span>Pattern:</span>
-      <input type="text" id="rhythmInput" placeholder="Eeee" value="Eeee">
-      <span id="rhythmLength" style="font-size:13px;color:#aaa;min-width:28px">1Q</span>
-      <button id="clearPatternBtn" title="Clear pattern">✕ Clear</button>
-      <div class="note-btns-group">
-        <button class="note-btn" data-note="W" title="Whole note">
-          <svg viewBox="0 0 21 26" aria-hidden="true">
-            <ellipse cx="10" cy="15" rx="8" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
-          </svg>
-          <span>w</span>
-        </button>
-        <button class="note-btn" data-note="H" title="Half note">
-          <svg viewBox="0 0 21 26" aria-hidden="true">
-            <ellipse cx="8" cy="22" rx="6" ry="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <span>h</span>
-        </button>
-        <button class="note-btn" data-note="Q" title="Quarter note">
-          <svg viewBox="0 0 21 26" aria-hidden="true">
-            <ellipse cx="8" cy="22" rx="6" ry="4" fill="currentColor"/>
-            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <span>q</span>
-        </button>
-        <button class="note-btn" data-note="E" title="Eighth note">
-          <svg viewBox="0 0 21 26" aria-hidden="true">
-            <ellipse cx="8" cy="22" rx="6" ry="4" fill="currentColor"/>
-            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M14,4 C20,7 20,14 14,16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <span>e</span>
-        </button>
-        <button class="note-btn" data-note="S" title="Sixteenth note">
-          <svg viewBox="0 0 21 26" aria-hidden="true">
-            <ellipse cx="8" cy="22" rx="6" ry="4" fill="currentColor"/>
-            <line x1="14" y1="21" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M14,4 C20,7 20,13 14,15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M14,10 C20,13 20,19 14,21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <span>s</span>
-        </button>
-      </div>
-    </div>
-    <div class="rhythm-row">
-      <input type="number" id="rhythmBpm" value="80" min="20" max="300" style="width:55px">
-      <span>BPM</span>
-      <button id="rhythmPlayBtn">Rhythm Play</button>
-      <button id="rhythmStopBtn">Rhythm Stop</button>
-      <label style="font-size:13px;color:#aaa;display:flex;align-items:center;gap:4px">
-        <input type="checkbox" id="rhythmLatencyComp" checked> latency comp
-      </label>
+  <div class="container">
+    <header>
+      <h1><strong>JC Plessis</strong></h1>
+      <p class="subtitle">Outils personnels</p>
+    </header>
+    <div class="grid">
+      <a class="card" href="drums/midi-timeline/">
+        <div class="card-icon">🥁</div>
+        <h2 class="card-title">MIDI Timeline</h2>
+        <p class="card-desc">Visualise en temps réel les notes MIDI d'une batterie sur une timeline défilante avec guide rythmique.</p>
+        <span class="card-tag">Batterie</span>
+      </a>
+      <a class="card" href="kungfu/">
+        <div class="card-icon">🥋</div>
+        <h2 class="card-title">Tao bâton · gunshu</h2>
+        <p class="card-desc">31 séquences du tao bâton découpées pour réviser chaque mouvement en boucle, à vitesse variable.</p>
+        <span class="card-tag">Kung Fu</span>
+      </a>
     </div>
   </div>
-  <div id="deviceList"></div>
-
-  <div id="timeline-wrapper">
-    <div id="timeline-content"></div>
-  </div>
-
-  <script src="midi.js"></script>
-  <script src="demo.js"></script>
-  <script src="main.js"></script>
 </body>
 </html>

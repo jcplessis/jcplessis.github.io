@@ -1,0 +1,167 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tao bâton (gunshu)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: lecteur collant (haut sur mobile, colonne gauche sur ordinateur) + liste des mouvements à droite */
+:root{
+  --bg:#eef1f8; --surface:#ffffff; --fg:#151a2b; --muted:#5b6280;
+  --line:#d6dbea; --mat:#2347b8; --mat-soft:#e2e8fb; --red:#d42a2a;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1222; --surface:#171c31; --fg:#e8ebf5; --muted:#9aa2c2;
+  --line:#2a3150; --mat:#7d9bff; --mat-soft:#1f2850; --red:#ff6b5e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1222; --surface:#171c31; --fg:#e8ebf5; --muted:#9aa2c2;
+  --line:#2a3150; --mat:#7d9bff; --mat-soft:#1f2850; --red:#ff6b5e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+h1{font-family:var(--display);font-weight:700;font-size:2.1rem;letter-spacing:.01em;margin:0;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--red)}
+.sub{color:var(--muted);margin:0;font-size:.92rem}
+.player{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:10px;min-width:0}
+.vbox{position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:16/9;max-width:100%}
+video{width:100%;height:100%;display:block}
+.now{display:flex;align-items:baseline;gap:10px;min-height:2.2em}
+.now .n{font-family:var(--display);font-weight:700;font-size:1.6rem;color:var(--red);font-variant-numeric:tabular-nums}
+.now .t{font-family:var(--display);font-weight:600;font-size:1.3rem}
+.now .r{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.bar{position:relative;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;background:var(--mat);opacity:.35}
+.bar b{position:absolute;top:0;bottom:0;width:2px;background:var(--red)}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grp{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.grp button{border:0;border-right:1px solid var(--line);background:transparent;color:var(--fg);padding:8px 11px;font:600 .95rem var(--display);letter-spacing:.03em;cursor:pointer;font-variant-numeric:tabular-nums}
+.grp button:last-child{border-right:0}
+.grp button[aria-pressed="true"]{background:var(--mat);color:#fff}
+button:focus-visible,select:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:-2px}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.chain select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.chain .go{border:0;background:var(--red);color:#fff;border-radius:6px;padding:8px 12px;font:600 .95rem var(--display);letter-spacing:.04em;cursor:pointer}
+.hint{font-size:.8rem;color:var(--muted);margin:0}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+li{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer;transition:border-color .15s}
+li:hover{border-color:var(--mat)}
+li.on{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+li img{width:150px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:var(--line)}
+.meta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.top{display:flex;align-items:baseline;gap:8px}
+.num{font-family:var(--display);font-weight:700;font-size:1.25rem;color:var(--red);font-variant-numeric:tabular-nums;min-width:1.6em}
+.nm{font-family:var(--display);font-weight:600;font-size:1.12rem;line-height:1.15}
+.ds{font-size:.85rem;color:var(--muted);margin:0}
+.acts{display:flex;gap:6px;margin-top:auto;flex-wrap:wrap;align-items:center}
+.acts button{border:1px solid var(--line);background:var(--mat-soft);color:var(--fg);border-radius:6px;padding:4px 10px;font:600 .9rem var(--display);letter-spacing:.03em;cursor:pointer}
+.acts .dur{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto}
+.special .num{color:var(--muted)}
+footer{grid-column:1/-1;color:var(--muted);font-size:.8rem}
+@media (max-width:860px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:14px}
+  .player{top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;padding-bottom:8px;margin-inline:-4px;padding-inline:4px}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+  .chain,.hint{display:none}
+  .player.more .chain{display:flex}
+  h1{font-size:1.7rem}
+  li{grid-template-columns:120px minmax(0,1fr)}
+  li img{width:120px}
+}
+@media (min-width:861px){.tgl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap">
+<header>
+  <h1>Tao bâton <span>· gunshu</span></h1>
+  <p class="sub">Maria Masiakina · Championnats du monde juniors de wushu · découpé en 31 séquences</p>
+</header>
+<section class="player" id="player">
+  <div class="vbox"><video id="v" playsinline preload="auto" controls muted></video></div>
+  <div class="now"><span class="n" id="nn">—</span><span class="t" id="nt">Choisis un mouvement</span><span class="r" id="nr"></span></div>
+  <div class="bar" id="bar"><i id="seg"></i><b id="cur"></b></div>
+  <div class="ctrls">
+    <div class="grp"><button id="prev" aria-label="Mouvement précédent">◀</button><button id="replay" aria-label="Rejouer">↺ Rejouer</button><button id="next" aria-label="Mouvement suivant">▶</button></div>
+    <span class="lbl">Vitesse</span>
+    <div class="grp" id="speeds"></div>
+    <div class="grp"><button id="loop" aria-pressed="true">Boucle</button></div>
+    <div class="grp tgl"><button id="more">1 → N</button></div>
+  </div>
+  <div class="chain">
+    <span class="lbl">Enchaîner</span>
+    <select id="from" aria-label="Du mouvement"></select><span>→</span><select id="to" aria-label="Au mouvement"></select>
+    <button class="go" id="chain">Lire l'enchaînement</button>
+  </div>
+  <p class="hint">Clavier : ← → mouvement précédent/suivant · espace pause · R rejouer · L boucle</p>
+</section>
+<ol id="list"></ol>
+<footer>Les noms des mouvements sont des descriptions de ce qu'on voit, pas les noms officiels de la forme. Les découpes sont approximatives à quelques dixièmes de seconde près. La vidéo contient aussi un ralenti (1:03–1:09) et le score, laissés hors du découpage.</footer>
+</div>
+<script>
+const S=[{"a": 1.0, "b": 11.8, "k": 6.76, "t": "Salut et entrée", "d": "Salut, présentation au jury et mise en place."}, {"a": 11.8, "b": 15.4, "k": 14.0, "t": "Posture de départ", "d": "Debout, pieds joints, bâton vertical tenu le long du corps."}, {"a": 15.4, "b": 16.6, "k": 16.44, "t": "Ouverture : levé puis fente avant", "d": "Le bâton monte au-dessus de la tête, puis on descend en fente avant, bâton pointé bas vers l'avant."}, {"a": 16.6, "b": 17.6, "k": 17.38, "t": "Pas d'élan et fente pointée", "d": "Petit pas sauté, puis retour en fente avant, bâton allongé vers l'avant."}, {"a": 17.6, "b": 19.0, "k": 18.36, "t": "Moulinet et position accroupie", "d": "Moulinet du bâton puis descente en position accroupie, bâton bas."}, {"a": 19.0, "b": 20.2, "k": 20.0, "t": "Remontée puis posture basse", "d": "On se redresse, puis on redescend en posture basse, bâton horizontal devant soi."}, {"a": 20.2, "b": 21.6, "k": 21.2, "t": "Moulinet et saut", "d": "Moulinet en se relevant, pas croisé et petit saut."}, {"a": 21.6, "b": 22.2, "k": 22.0, "t": "Cavalier, bâton horizontal", "d": "Réception en position du cavalier (ma bu), bâton tenu à l'horizontale."}, {"a": 22.2, "b": 23.0, "k": 22.54, "t": "Saut et retour au cavalier", "d": "Saut avec moulinet, retour en cavalier."}, {"a": 23.0, "b": 24.0, "k": 23.74, "t": "Deuxième saut, cavalier", "d": "Nouveau saut puis cavalier, bâton horizontal à hauteur de taille."}, {"a": 24.0, "b": 25.5, "k": 25.16, "t": "Moulinets et genou levé", "d": "Moulinets rapides du bâton, finis sur une jambe, genou levé."}, {"a": 25.5, "b": 27.0, "k": 26.36, "t": "Frappe et fente basse", "d": "Frappe descendante puis fente basse, bâton pointé vers l'avant."}, {"a": 27.0, "b": 28.2, "k": 27.76, "t": "Moulinet et garde", "d": "Moulinet puis garde, bâton pointé à l'horizontale."}, {"a": 28.2, "b": 30.0, "k": 29.76, "t": "Fente, bâton en diagonale", "d": "Moulinet puis fente, bâton planté en diagonale vers le sol."}, {"a": 30.0, "b": 31.4, "k": 31.18, "t": "Déplacement et fente basse", "d": "Déplacement puis fente basse, bâton pointé vers l'avant."}, {"a": 31.4, "b": 32.6, "k": 32.16, "t": "Redressement, bâton vertical", "d": "On se relève et on ramène le bâton à la verticale."}, {"a": 32.6, "b": 34.1, "k": 34.02, "t": "Balayage et fente basse", "d": "Balayage du bâton puis fente basse, bâton en diagonale."}, {"a": 34.1, "b": 36.4, "k": 35.78, "t": "Moulinets à une main, genou levé", "d": "Série de moulinets, finie sur une jambe, genou levé, bâton tendu."}, {"a": 36.4, "b": 37.8, "k": 37.54, "t": "Course et cavalier", "d": "Petite course puis réception en cavalier, bâton horizontal."}, {"a": 37.8, "b": 39.3, "k": 38.76, "t": "Saut et fente pointée", "d": "Saut, puis fente basse, bâton pointé vers l'avant."}, {"a": 39.3, "b": 41.0, "k": 40.14, "t": "Moulinet en tournant", "d": "Moulinet debout en pivotant sur soi-même."}, {"a": 41.0, "b": 42.4, "k": 42.24, "t": "Fente basse en garde", "d": "Fente basse, bâton pointé, regard vers l'avant."}, {"a": 42.4, "b": 44.2, "k": 42.76, "t": "Moulinets latéraux", "d": "Moulinets de chaque côté du corps en se déplaçant."}, {"a": 44.2, "b": 45.4, "k": 44.94, "t": "Garde basse", "d": "Garde basse, bâton à l'horizontale."}, {"a": 45.4, "b": 47.4, "k": 46.46, "t": "Saut genou levé et réception basse", "d": "Saut genou levé, puis réception accroupie, bâton horizontal."}, {"a": 47.4, "b": 49.4, "k": 49.32, "t": "Piqué, saut et cavalier", "d": "Piqué vers l'avant, saut, puis cavalier."}, {"a": 49.4, "b": 50.3, "k": 49.94, "t": "Fente arrière, bâton bas", "d": "Fente vers l'arrière, bâton bas vers l'avant."}, {"a": 50.3, "b": 52.2, "k": 52.0, "t": "Moulinet et fente pointée", "d": "Moulinet puis fente, bâton pointé à l'horizontale."}, {"a": 52.2, "b": 53.9, "k": 52.88, "t": "Pas et bâton en diagonale", "d": "Pas en arrière, bâton tenu en diagonale."}, {"a": 53.9, "b": 57.0, "k": 55.16, "t": "Moulinets finaux", "d": "Derniers moulinets puis retour du bâton à la verticale."}, {"a": 57.0, "b": 62.3, "k": 57.2, "t": "Fermeture et salut", "d": "Retour à la posture de départ et salut final."}];
+const v=document.getElementById('v'),list=document.getElementById('list');
+let cur=-1,range=null,loop=true,rate=0.5,waiting=false;
+v.muted=true;
+(async()=>{const nt=document.getElementById('nt');nt.textContent='Chargement de la vidéo…';
+  try{const r=await fetch('tao.mp4');if(!r.ok)throw new Error(r.status);const b=await r.blob();v.src=URL.createObjectURL(new Blob([b],{type:'video/mp4'}))}
+  catch(e){v.src='tao.mp4'}
+  v.addEventListener('error',()=>{if(v.src.startsWith('blob:'))v.src='tao.mp4'},{once:true});
+})();
+const fmt=t=>{t=Math.max(0,t);const m=Math.floor(t/60),s=(t%60).toFixed(1).padStart(4,'0');return m+':'+s};
+const label=i=>i===0?'In':String(i);
+S.forEach((s,i)=>{
+  const li=document.createElement('li');if(i===0)li.className='special';li.dataset.i=i;
+  li.innerHTML=`<img loading="lazy" src="img/m${String(i).padStart(2,'0')}.jpg" alt="">
+  <div class="meta"><div class="top"><span class="num">${label(i)}</span><span class="nm">${s.t}</span></div>
+  <p class="ds">${s.d}</p><div class="acts"><button data-a="play">▶ Voir</button><button data-a="chain">1 → ${label(i)}</button><span class="dur">${fmt(s.a)} · ${(s.b-s.a).toFixed(1)} s</span></div></div>`;
+  li.addEventListener('click',e=>{const a=e.target.dataset&&e.target.dataset.a;if(a==='chain'){playRange(1,i)}else playSeg(i)});
+  list.appendChild(li);
+  for(const id of['from','to']){const o=new Option(label(i)+' · '+s.t,i);document.getElementById(id).add(o)}
+});
+document.getElementById('from').value=1;document.getElementById('to').value=5;
+const speeds=[0.25,0.5,0.75,1];const sp=document.getElementById('speeds');
+speeds.forEach(r=>{const b=document.createElement('button');b.textContent=r===1?'1×':String(r).replace('0.','.')+'×';b.setAttribute('aria-pressed',r===rate);b.onclick=()=>{rate=r;v.playbackRate=r;[...sp.children].forEach(x=>x.setAttribute('aria-pressed',x===b))};sp.appendChild(b)});
+v.playbackRate=rate;
+v.addEventListener('ratechange',()=>{});
+v.addEventListener('play',()=>{v.playbackRate=rate});
+function mark(i,txtN,txtT,a,b){
+  cur=i;document.querySelectorAll('li').forEach(l=>l.classList.toggle('on',+l.dataset.i===i));
+  document.getElementById('nn').textContent=txtN;document.getElementById('nt').textContent=txtT;
+  document.getElementById('nr').textContent=fmt(a)+' – '+fmt(b);
+  const D=v.duration||76.4,seg=document.getElementById('seg');seg.style.left=(a/D*100)+'%';seg.style.width=((b-a)/D*100)+'%';
+}
+function start(){if(v.readyState<1){v.addEventListener('loadedmetadata',()=>{if(range)start()},{once:true});return}v.currentTime=range.a;v.playbackRate=rate;const p=v.play();if(p)p.catch(()=>{})}
+function playSeg(i){i=Math.max(0,Math.min(S.length-1,i));const s=S[i];range={a:Math.max(0,s.a-0.15),b:s.b};mark(i,label(i),s.t,s.a,s.b);start();
+  const el=list.children[i];if(el&&window.innerWidth>860)el.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function playRange(f,t){if(t<f)[f,t]=[t,f];range={a:Math.max(0,S[f].a-0.15),b:S[t].b,chain:[f,t]};mark(f,label(f)+'→'+label(t),'Enchaînement',S[f].a,S[t].b);start()}
+function tick(){
+  if(range&&!v.paused&&!waiting){
+    const t=v.currentTime;
+    if(range.chain){const k=S.findIndex((s,j)=>j>=range.chain[0]&&j<=range.chain[1]&&t>=s.a&&t<s.b);
+      if(k>=0&&k!==cur){cur=k;document.querySelectorAll('li').forEach(l=>l.classList.toggle('on',+l.dataset.i===k))}}
+    if(t>=range.b){
+      if(loop){waiting=true;v.pause();setTimeout(()=>{waiting=false;if(range)start()},700)}
+      else{v.pause()}
+    }
+  }
+  const D=v.duration||76.4;document.getElementById('cur').style.left=(v.currentTime/D*100)+'%';
+  requestAnimationFrame(tick)
+}
+requestAnimationFrame(tick);
+v.addEventListener('seeking',()=>{if(range&&!waiting&&(v.currentTime<range.a-0.3||v.currentTime>range.b+0.3)){range=null;document.getElementById('nt').textContent='Lecture libre';document.getElementById('nn').textContent='—';document.getElementById('nr').textContent=''}});
+document.getElementById('prev').onclick=()=>playSeg(cur<=0?0:cur-1);
+document.getElementById('next').onclick=()=>playSeg(cur+1);
+document.getElementById('replay').onclick=()=>{if(range)start();else playSeg(Math.max(cur,1))};
+const lb=document.getElementById('loop');lb.onclick=()=>{loop=!loop;lb.setAttribute('aria-pressed',loop)};
+document.getElementById('chain').onclick=()=>playRange(+document.getElementById('from').value,+document.getElementById('to').value);
+document.getElementById('more').onclick=()=>document.getElementById('player').classList.toggle('more');
+document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;
+  if(e.key==='ArrowRight'){e.preventDefault();playSeg(cur+1)}else if(e.key==='ArrowLeft'){e.preventDefault();playSeg(cur<=0?0:cur-1)}
+  else if(e.key===' '){e.preventDefault();v.paused?v.play():v.pause()}else if(e.key==='r'||e.key==='R'){document.getElementById('replay').click()}
+  else if(e.key==='l'||e.key==='L'){lb.click()}});
+v.addEventListener('loadedmetadata',()=>{if(cur<0){const s=S[1];mark(1,'1',s.t,s.a,s.b);range={a:s.a-0.15,b:s.b};v.currentTime=s.a}});
+</script>
+
+</body></html>
